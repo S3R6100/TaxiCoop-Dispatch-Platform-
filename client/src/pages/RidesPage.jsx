@@ -6,15 +6,22 @@ import { RefreshCw } from "lucide-react";
 const RidesPage = () => {
   const [rides, setRides] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
 
-  const fetchRides = async () => {
+  const fetchRides = async (opts = {}) => {
     setLoading(true);
     try {
-      const data = await getRides();
+      const data = await getRides({
+        status: statusFilter || undefined,
+        page,
+        pageSize,
+        ...opts,
+      });
       setRides(data);
     } catch (error) {
       console.error("Error fetching rides:", error);
-      // Here you would set an error state to show in the UI
     } finally {
       setLoading(false);
     }
@@ -24,16 +31,21 @@ const RidesPage = () => {
     fetchRides();
   }, []);
 
+  useEffect(() => {
+    // refetch when filter or page changes
+    fetchRides();
+  }, [statusFilter, page]);
+
   const getStatusBadge = (status) => {
     switch (status) {
-      case 'Finalizada':
-        return 'bg-green-100 text-green-800';
-      case 'En Camino':
-        return 'bg-blue-100 text-blue-800';
-      case 'Solicitada':
-        return 'bg-yellow-100 text-yellow-800';
+      case "Finalizada":
+        return "bg-green-100 text-green-800";
+      case "En Camino":
+        return "bg-blue-100 text-blue-800";
+      case "Solicitada":
+        return "bg-yellow-100 text-yellow-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -41,18 +53,38 @@ const RidesPage = () => {
     <div>
       <Header title="Carreras" />
       <div className="p-6">
-        <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Historial de Carreras</h2>
-            <button 
-                onClick={fetchRides} 
-                className="bg-taxi-yellow hover:bg-yellow-500 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center transition-colors"
-                disabled={loading}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-3">
+          <h2 className="text-xl font-semibold">Historial de Carreras</h2>
+          <div className="flex items-center gap-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => {
+                setPage(1);
+                setStatusFilter(e.target.value);
+              }}
+              className="border rounded px-2 py-1"
             >
-                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                <span>{loading ? 'Actualizando...' : 'Actualizar'}</span>
+              <option value="">Todos</option>
+              <option value="Solicitada">Solicitada</option>
+              <option value="En Camino">En Camino</option>
+              <option value="Finalizada">Finalizada</option>
+            </select>
+            <button
+              onClick={() => {
+                setPage(1);
+                fetchRides();
+              }}
+              className="bg-taxi-yellow hover:bg-yellow-500 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center transition-colors"
+              disabled={loading}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              />
+              <span>{loading ? "Actualizando..." : "Actualizar"}</span>
             </button>
+          </div>
         </div>
-        
+
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           {loading ? (
             <div className="p-8 text-center">Cargando...</div>
@@ -72,24 +104,59 @@ const RidesPage = () => {
               </thead>
               <tbody>
                 {rides.map((ride) => (
-                  <tr key={ride.id} className="border-b border-gray-200 hover:bg-gray-50">
+                  <tr
+                    key={ride.id}
+                    className="border-b border-gray-200 hover:bg-gray-50"
+                  >
                     <td className="px-5 py-4 text-sm bg-white">{ride.id}</td>
-                    <td className="px-5 py-4 text-sm bg-white">{ride.client}</td>
-                    <td className="px-5 py-4 text-sm bg-white">{ride.origin}</td>
-                    <td className="px-5 py-4 text-sm bg-white">{ride.destination}</td>
-                    <td className="px-5 py-4 text-sm bg-white">{ride.driver}</td>
                     <td className="px-5 py-4 text-sm bg-white">
-                      <span className={`px-2 py-1 font-semibold leading-tight rounded-full text-xs ${getStatusBadge(ride.status)}`}>
+                      {ride.client}
+                    </td>
+                    <td className="px-5 py-4 text-sm bg-white">
+                      {ride.origin}
+                    </td>
+                    <td className="px-5 py-4 text-sm bg-white">
+                      {ride.destination}
+                    </td>
+                    <td className="px-5 py-4 text-sm bg-white">
+                      {ride.driver}
+                    </td>
+                    <td className="px-5 py-4 text-sm bg-white">
+                      <span
+                        className={`px-2 py-1 font-semibold leading-tight rounded-full text-xs ${getStatusBadge(ride.status)}`}
+                      >
                         {ride.status}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-sm bg-white">${ride.price}</td>
-                    <td className="px-5 py-4 text-sm bg-white">{ride.duration}</td>
+                    <td className="px-5 py-4 text-sm bg-white">
+                      ${ride.price}
+                    </td>
+                    <td className="px-5 py-4 text-sm bg-white">
+                      {ride.duration}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           )}
+        </div>
+        <div className="flex items-center justify-between mt-4">
+          <div>
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="mr-2 px-3 py-1 bg-gray-200 rounded"
+              disabled={page === 1}
+            >
+              Anterior
+            </button>
+            <button
+              onClick={() => setPage((p) => p + 1)}
+              className="px-3 py-1 bg-gray-200 rounded"
+            >
+              Siguiente
+            </button>
+          </div>
+          <div className="text-sm text-gray-600">Página {page}</div>
         </div>
       </div>
     </div>

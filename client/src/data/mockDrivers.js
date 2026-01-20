@@ -1,0 +1,9 @@
+export const mockDrivers = [
+  { id: 'D001', name: 'Jane Smith', plate: 'ABC-123', zone: 'Downtown', status: 'Disponible' },
+  { id: 'D002', name: 'Carlos Ray', plate: 'XYZ-987', zone: 'Airport', status: 'Ocupado' },
+  { id: 'D003', name: 'Samantha Bee', plate: 'LMN-456', zone: 'West End', status: 'Disponible' },
+  { id: 'D004', name: 'Juan Garcia', plate: 'QWE-321', zone: 'Uptown', status: 'Inactivo' },
+  { id: 'D005', name: 'Alex Turner', plate: 'RTY-654', zone: 'Midtown', status: 'Disponible' },
+  { id: 'D006', name: 'Marta Lopez', plate: 'UIO-741', zone: 'Suburbia', status: 'Ocupado' },
+  { id: 'D007', name: 'Diego Maradona', plate: 'PAS-852', zone: 'Northside', status: 'Disponible' },
+];
